@@ -6,7 +6,7 @@
 
 ### Scala type hierarchy
 
-![scala type hierachy](\img\scala-type-hierarchy.png)
+![scala type hierachy](img/scala-type-hierarchy.png)
 
 There are **two special types** at the ***bottom*** of the hierarchy:
 
@@ -21,17 +21,19 @@ The following code illustrates this:
 
 ```scala
 def badness = throw new Exception("Error")
+// badness: Nothing
+
 null
 // res: Null = null
 
-if(true) 123 else badness
-// res: Int = 123
+val bar = if(true) 123 else badness
+// bar: Int = 123
 
-if(false) "it worked" else null
+val baz = if(false) "it worked" else null
 // res: String = null
 ```
 
-Although the types of `badness` and `// res` are `Nothing` and `Null` respectively, **the types of `res2` and `res3` are still sensible**. This is because **`Int` is the least common supertype of `Int` and `Nothing`**, and **`String` is the least common supertype of `String` and `Null`**.
+Although the types of `badness` and `res` are `Nothing` and `Null` respectively, **the types of `bar` and `baz` are still sensible**. This is because **`Int` is the least common supertype of `Int` and `Nothing`**, and **`String` is the least common supertype of `String` and `Null`**.
 
 
 
@@ -94,7 +96,7 @@ An algebraic data type is any data that uses the above two patterns. In the func
 -  the "**has-a and**" pattern is known as a ***product type***, and 
 
 
-- the "**is-a o**r" pattern is a ***sum type***.
+- the "**is-a or**" pattern is a ***sum type***.
 
   ​
 
@@ -120,16 +122,9 @@ case class A(b: B, c: C)
 `A` ***is*** a `B` ***or*** `C`
 
 ```scala
-trait A {
-  def b: B
-  def c: C
-}
-```
-
-or
-
-```scala
-case class A(b: B, c: C)
+sealed trait A
+final case class B() extends A
+final case class C() extends A
 ```
 
 
@@ -152,10 +147,11 @@ The "has-a or" patterns means that `A` has a `B` or `C`. **There are two ways** 
 
 We can say that `A` has a `d`of type `D`, where `D` is a `B` or `C`. We can mechanically apply our two patterns to implement this:
 
-```
+```scala
 trait A {
   def d: D
 }
+
 sealed trait D
 final case class B() extends D
 final case class C() extends D
@@ -222,7 +218,7 @@ def f(a: A): F = a match {
   }
 ```
 
-
+Note how we access the **inner parts of A**. Structural recursion is essentially the process of breaking down data into smaller pieces
 
 ##### Where to implement pattern matching
 
@@ -318,7 +314,7 @@ the last calculation that happens before the return statement is the **sum of `h
 
 ##### @tailrec annotation
 
-One way **to be certain that a  function is tail recursive** is to annotate it with the **@tailrec** annotation to **ask the compiler** to check that methods we believe are tail recursion really are.
+One way **to be certain that a  function is tail recursive** is to annotate it with the **@tailrec** annotation to **ask the compiler** to check that methods we believe are tail recursion **really are**.
 
 
 
