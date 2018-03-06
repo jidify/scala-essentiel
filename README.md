@@ -1,10 +1,74 @@
 [TOC]
 
+## Expression, Types and Values (ch 2)
 
+### Methods versus fields
+
+The difference is subtle - a field gives a name to a value, whereas a method gives a name to a computation that produces a value.
+
+```scala
+object Test7 {
+   val simpleField = {
+     println("Evaluating simpleField")           // print only at the first call
+     42
+   }
+   def noParameterMethod = {
+     println("Evaluating noParameterMethod")     // print at each call
+     42
+   }
+}
+```
+
+- The body expression **of a field** is ***run only once*** after which the final value **is stored in the object**. The expression is never evaluated again.
+
+
+- The body **of a method**, on the other hand, **is evaluated every time we call the method**.
+
+  ​
 
 ##  Objects et Classes (ch 3)
 
-### Scala type hierarchy
+### classes
+
+#### Defining a class
+
+A class declaration binds a name (for example `Person`) and **is not an expression**. However, unlike an object name, **we cannot use a class name in an expression**. 
+A class is not a value, and there is a different *namespace* in which classes live.
+
+#### Constructor
+
+TODO
+
+#### Default and Keyword Parameters
+
+All Scala methods and constructors support ***keyword parameters*** and ***default parameter values***.
+
+When we call a method or constructor, we can *use parameter names as **keywords*** to specify the parameters **in an arbitrary order**. *
+
+*This comes in doubly useful when used in combination with default parameter values*, defined like this:
+
+```
+def greet(firstName: String = "Some", lastName: String = "Body") =
+  "Greetings, " + firstName + " " + lastName + "!"
+
+```
+
+If a parameter **has a default value we can omit it in the method** call:
+
+```
+greet("Busy")
+
+```
+
+Combining keywords with default parameter values let us skip earlier parameters and just provide values for later ones:
+
+```
+greet(lastName = "Dave")
+```
+
+
+
+#### Scala type hierarchy
 
 ![scala type hierachy](img/scala-type-hierarchy.png)
 
@@ -37,12 +101,13 @@ Although the types of `badness` and `res` are `Nothing` and `Null` respectively,
 
 
 
-### Méthodes versus Champs
+### Objects as Functions
 
-- un champs donne un nom à une valeur
+#### The apply method
+
+In Scala, by convention, an object can be "called" like a function **if it has a method called `apply`.** Naming a method `apply`affords us a special shortened call syntax:	`foo.apply(args)` becomes `foo(args)`.
 
 
-- une méthode donne un nom à un calcul qui donne une valeur 
 
 ### Case classes (et Case objects)
 
@@ -354,3 +419,42 @@ def sum(list: IntList): Int = {
 
 In Scala we tend **not to work directly with tail recursive** functions as there is a **rich collections library that covers the most common cases where tail recursion is used**. 
 Should you need to go beyond this, because you're implementing your own datatypes or are optimising code, it is useful to know about tail recursion.
+
+
+
+## Sequencing computation (ch 5)
+
+### Generics
+
+Generic types allow us to ***abstract over types***.
+
+When we call a method or construct a class with a type parameter, **the type parameter is bound to the concrete type** within the method or class body.
+
+
+
+#### Type Parameter Syntax
+
+Generic types can be declared in a class or trait declaration in which case they are **visible throughout the rest of the declaration**.
+
+```
+case class Name[A](...){ ... }
+trait Name[A]{ ... }
+```
+
+Alternatively they may be declared in a method declaration, in which case they are **only visible within the method**.
+
+```
+def name[A](...){ ... }
+```
+
+#### Generic Algebraic Data Types
+
+ If `A` of type `T` is a `B` or `C` write
+
+```
+sealed trait A[T]
+final case class B[T]() extends A[T]
+final case class C[T]() extends A[T]
+```
+
+### 
