@@ -399,7 +399,7 @@ into a tail-recursive function is to follow a series of simple steps:
 3. Modify the second function’s algorithm so it uses the new accumulator
 4. Call the second function from inside the first function. When you do this you give the second function’s accumulator parameter an “seed” value which correspond to the identity value of the function.
 
-```
+```scala
 @tailrec
 def sum(list: IntList): Int = {
     @tailrec
@@ -436,25 +436,132 @@ When we call a method or construct a class with a type parameter, **the type par
 
 Generic types can be declared in a class or trait declaration in which case they are **visible throughout the rest of the declaration**.
 
-```
+```scala
 case class Name[A](...){ ... }
 trait Name[A]{ ... }
 ```
 
 Alternatively they may be declared in a method declaration, in which case they are **only visible within the method**.
 
-```
+```scala
 def name[A](...){ ... }
 ```
 
 #### Generic Algebraic Data Types
 
- If `A` of type `T` is a `B` or `C` write
+>  If `A` of type `T` is a `B` or `C` write
+>
+> ```scala
+> sealed trait A[T]
+> final case class B[T]() extends A[T]
+> final case class C[T]() extends A[T]
+> ```
+>
+> 
 
-```
-sealed trait A[T]
-final case class B[T]() extends A[T]
-final case class C[T]() extends A[T]
+### Generic Folds for Generic Data
+
+#### Working With Functions
+
+##### Placeholder syntax
+
+```scala
+_ + _     // expands to `(a, b) => a + b`
+foo(_)    // expands to `(a) => foo(a)`
+foo(_, b) // expands to `(a) => foo(a, b)`
+_(foo)    // expands to `(a) => a(foo)`
+// and so on..
 ```
 
-### 
+Placeholder syntax can be confusing for large expressions and **should only be used for very small functions**.
+
+##### Converting methods to functions
+
+convert method calls to functions by follow a method name with an underscore 
+
+```scala
+object Sum {
+  def sum(x: Int, y: Int) = x + y
+}
+
+Sum.sum  // method call without parameters => ERROR
+
+(Sum.sum _) // res: (Int, Int) => Int
+```
+
+In situations where Scala can infer that we need a function, we can even drop the underscore and simply write the method name---the compiler will promote the method to a function automatically.
+
+### Variance
+
+*variance annotations* allow us to **control subclass relationships between types** with **type parameters**.
+
+#### Invariance, Covariance, and Contravariance
+
+A type `Foo[T]` is ***invariant*** in terms of `T`, meaning that the types `Foo[A]` and `Foo[B]` are unrelated regardless of the relationship between `A` and `B`. This is the **default variance** of any generic type in Scala.
+
+A type `Foo[+T]` is ***covariant*** in terms of `T`, meaning that **`Foo[A]` is a supertype of `Foo[B]`** if **`A` is a supertype of `B`**.
+
+A type `Foo[-T]` is ***contravariant*** in terms of `T`, meaning that **`Foo[A]` is a *subtype* of `Foo[B]`** if `A` is a *supertype* of `B`. 
+
+![scala-variance](img/scala-variance.png)
+
+<u>**IMPORTANT**:</u> 
+
+- **covariance** is the **"classical" case of variance** (type with types parameters, collection ... ). Tt' is the most easy to undersand too.
+
+
+- the **only example of contravariance** that I am aware of is **function arguments**.
+
+
+
+#### Function Types pattern
+
+> **<u>Functions are :</u>**
+>
+> - **contravariant** in terms of their **arguments** 
+> - **covariant** in terms of their **return type**.
+>
+> ```
+> def func[-A, +B](in: A): B = ...
+>
+> ```
+>
+> 
+
+#### Covariant Generic Sum Type Pattern
+
+> If `A` of type `T` is a `B` or `C`, and `C` **is not generic**, write
+>
+> ```
+> sealed trait A[+T]
+> final case class B[T](t: T) extends A[T]
+> case object C extends A[Nothing]
+>
+> ```
+>
+> This pattern extends to more than one type parameter. If a type parameter is not needed for a specific case of a sum type, we can substitute `Nothing` for that parameter.
+
+
+
+#### Contravariant Position Pattern
+
+There is another pattern we need to learn for **covariant sum types**, which involves the **interaction of covariant type parameters** and **contravariant method and function parameters**.
+
+> If `A` of a covariant type `T` and a method `f` of `A` **complains that `T` is used in a contravariant position**, introduce a type `TT >: T` in `f`.
+>
+> ```
+> case class A[+T]() {
+>   def f[TT >: T](t: TT): A[TT] = ???
+> }
+>
+> ```
+
+
+
+#### Type Bounds
+
+Type bounds extend to specify subtypes as well as supertypes: 
+
+ **`A <: Type`** declares that  `A` must be a **subtype** of `Type` .
+
+ **`A >: Type `** declares that `A` must be a **supertype**  of `Type`.
